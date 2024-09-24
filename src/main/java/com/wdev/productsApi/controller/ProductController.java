@@ -123,7 +123,7 @@ public class ProductController {
         routes.put("DELETE /api/products/{id}", "Remove um produto específico pelo ID.");
 
         response.put("availableRoutes", routes);
-        response.put("github", "https://github.com/wandrey7/productsAPI");
+        response.put("github", "https://github.com/wandrey7/product-api");
 
         return response;
     }
