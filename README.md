@@ -11,9 +11,6 @@ A **API de Produtos** permite gerenciar um catálogo de produtos. Os usuários p
 ![Hibernate](https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
-## URL da API
-A API está disponível em [https://productsapi.fly.dev/api](https://productsapi.fly.dev/api).
-
 ## Endpoints da API
 
 ### 1. Criar Produto
