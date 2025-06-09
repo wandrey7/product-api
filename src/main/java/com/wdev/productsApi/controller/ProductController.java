@@ -45,8 +45,10 @@ public class ProductController {
     @GetMapping("/api/products/{id}")
     public ResponseEntity<Object> getProductById(@PathVariable("id") UUID productId) {
         try {
-            Optional<ProductModel> productData = productService.findProductById(productId);
-            return ResponseEntity.status(HttpStatus.OK).body(productData);
+            ProductModel product = productService.findProductById(productId)
+                    .orElseThrow(ProductExceptions.ProductNotFoundException::new);
+
+            return ResponseEntity.status(HttpStatus.OK).body(product);
         } catch (ProductExceptions.ProductNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
@@ -82,10 +84,12 @@ public class ProductController {
     public ResponseEntity<Object> updateProduct(@PathVariable("id") UUID productId,
                                                 @RequestBody @Valid ProductDTO productDTO) {
         try {
-            Optional<ProductModel> product = productService.findProductById(productId);
-            ProductModel productModel = product.get();
-            BeanUtils.copyProperties(productDTO, productModel);
-            return ResponseEntity.status(HttpStatus.OK).body(productService.createProducts(Collections.singletonList(productModel)));
+            ProductModel product = productService.findProductById(productId)
+                    .orElseThrow(ProductExceptions.ProductNotFoundException::new);
+
+            BeanUtils.copyProperties(productDTO, product);
+
+            return ResponseEntity.status(HttpStatus.OK).body(productService.createProducts(Collections.singletonList(product)));
         } catch (ProductExceptions.ProductNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
@@ -99,8 +103,10 @@ public class ProductController {
     @DeleteMapping("/api/products/{id}")
     public ResponseEntity<Object> deleteProduct(@PathVariable("id") UUID productId) {
         try {
-            Optional<ProductModel> product = productService.findProductById(productId);
-            productService.deleteProduct(productId);
+            ProductModel product = productService.findProductById(productId)
+                    .orElseThrow(ProductExceptions.ProductNotFoundException::new);
+
+            productService.deleteProduct(product.getIdProduct());
             return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "successfully deleted"));
         } catch (ProductExceptions.ProductNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));

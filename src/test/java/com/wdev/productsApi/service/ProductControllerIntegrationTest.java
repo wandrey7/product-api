@@ -2,6 +2,7 @@ package com.wdev.productsApi.service;
 
 import com.jayway.jsonpath.JsonPath;
 import com.wdev.productsApi.repository.ProductRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,28 +20,38 @@ import org.springframework.test.web.servlet.MvcResult;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class ProductServiceTest {
+public class ProductControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     ProductRepository productRepository;
 
+    @AfterEach
+    public void cleanUp() {
+        productRepository.deleteAll();
+    }
+
+    private static final String TEST_PRODUCTS_JSON = "[{\"name\": \"teclado gamer\",\"price\": 190}," +
+            " {\"name\": \"mousepad\",\"price\": 15}," +
+            " {\"name\": \"monitor\",\"price\": 150}," +
+            " {\"name\": \"headset\",\"price\": 70}]";
+
     @Test
-    @DisplayName("Shold return a create and delete product")
+    @DisplayName("Should create and delete a product")
     public void createProduct() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("[{\"name\": \"tecladogamer\",\"value\": 190}]"))
+                        .content(TEST_PRODUCTS_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].idProduct").exists())
-                .andExpect(jsonPath("$[0].name").value("tecladogamer"))
-                .andExpect(jsonPath("$[0].value").value(190))
+                .andExpect(jsonPath("$[0].name").value("teclado gamer"))
+                .andExpect(jsonPath("$[0].price").value(190))
                 .andReturn();
 
-        String content = result.getResponse().getContentAsString();
-        String idProduct = JsonPath.read(content, "$[0].idProduct");
+        String data = result.getResponse().getContentAsString();
+        String idProduct = JsonPath.read(data, "$[0].idProduct");
 
         mockMvc.perform(delete("/api/products/{id}", idProduct)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -49,31 +60,38 @@ public class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("Shold return error a create product")
+    @DisplayName("Should return an error when trying to create a product with invalid data")
     public void createProductError() throws Exception {
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[{\"name\": \"chapeu\"}]"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("{\"message\": \"An unexpected error occurred\" }"));
+                .andExpect(content().json("{\"message\": \"Oops! An unexpected error occurred.\" }"));
     }
 
     @Test
-    @DisplayName("Shold return all products")
+    @DisplayName("Should return all products")
     public void returnAllProducts() throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/products")
+        mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("[{\"name\": \"tecladogamer\",\"value\": 190}, {\"name\": \"mousepad\",\"value\": 15}, {\"name\": \"monitor\",\"value\": 150}, {\"name\": \"headset\",\"value\": 70}]")
+                        .content(TEST_PRODUCTS_JSON)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].idProduct").exists())
-                .andExpect(jsonPath("$[0].name").value("tecladogamer"))
-                .andExpect(jsonPath("$[0].value").value(190))
+                .andExpect(jsonPath("$[0].name").value("teclado gamer"))
+                .andExpect(jsonPath("$[0].price").value(190))
+                .andExpect(jsonPath("$[1].idProduct").exists())
+                .andExpect(jsonPath("$[1].name").value("mousepad"))
+                .andExpect(jsonPath("$[1].price").value(15))
+                .andExpect(jsonPath("$[2].idProduct").exists())
+                .andExpect(jsonPath("$[2].name").value("monitor"))
+                .andExpect(jsonPath("$[2].price").value(150))
+                .andExpect(jsonPath("$[3].idProduct").exists())
+                .andExpect(jsonPath("$[3].name").value("headset"))
+                .andExpect(jsonPath("$[3].price").value(70))
                 .andReturn();
-
-        String contents = result.getResponse().getContentAsString();
 
         mockMvc.perform(get("/api/products")
                         .param("page", "1")
@@ -82,18 +100,10 @@ public class ProductServiceTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(3));
-
-        for (int i = 0; i < 4; i++) {
-            String id = JsonPath.read(contents, "$[" + i + "].idProduct");
-            mockMvc.perform(delete("/api/products/{id}", id)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json("{\"message\": \"successfully deleted\"}"));
-        }
     }
 
     @Test
-    @DisplayName("Return error a product page empty")
+    @DisplayName("Should return an error when trying to return a product page empty")
     public void returnProductPageEmpty() throws Exception {
         mockMvc.perform(get("/api/products")
                         .param("page", "999")
@@ -104,16 +114,16 @@ public class ProductServiceTest {
     }
 
     @Test
-    @DisplayName("Shold delete product")
+    @DisplayName("Should return a message when delete product")
     public void deleteProduct() throws Exception {
         MvcResult mvcResult = mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("[{\"name\": \"MouseM600\", \"value\": 19}]"))
+                        .content(TEST_PRODUCTS_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$[0].idProduct").exists())
-                .andExpect(jsonPath("$[0].name").value("MouseM600"))
-                .andExpect(jsonPath("$[0].value").value(19))
+                .andExpect(jsonPath("$[0].name").value("teclado gamer"))
+                .andExpect(jsonPath("$[0].price").value(190))
                 .andReturn();
 
         String data = mvcResult.getResponse().getContentAsString();
