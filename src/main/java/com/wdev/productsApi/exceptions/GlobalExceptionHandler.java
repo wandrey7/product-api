@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Oops! An unexpected error occurred. Please visit https://productsapi.fly.dev/api to see available routes and try again."));
+                .body(Map.of("message", "Oops! An unexpected error occurred."));
     }
 }
 
