@@ -1,13 +1,14 @@
 package com.wdev.productsApi.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.UUID;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "PRODUCTS")
@@ -18,7 +19,7 @@ public class ProductModel implements Serializable {
     @Id
     @GeneratedValue
     private UUID idProduct;
-    private String name;
+    private String nome;
     private BigDecimal price;
 
     public UUID getIdProduct() {
@@ -29,12 +30,12 @@ public class ProductModel implements Serializable {
         this.idProduct = idProduct;
     }
 
-    public String getName() {
-        return name;
+    public String getNome() {
+        return nome;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNome(String name) {
+        this.nome = name;
     }
 
     public BigDecimal getPrice() {
